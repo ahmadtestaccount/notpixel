@@ -9,3 +9,4 @@ __pycache__
 *.session
 
 *.cpython-310.pyc
+venv/
