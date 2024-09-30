@@ -10,13 +10,17 @@ class Settings(BaseSettings):
     SLEEP_TIME: list[int] = [2700, 4200]
     START_DELAY: list[int] = [5, 100]
     AUTO_TASK: bool = True
-    TASKS_TO_DO: list[str] = ["paint20pixels", "leagueBonusSilver"]
+    TASKS_TO_DO: list[str] = ["paint20pixels", "x:notpixel", "x:notcoin", "channel:notcoin", "channel:notpixel_channel"]
     AUTO_DRAW: bool = True
     JOIN_TG_CHANNELS: bool = True
     CLAIM_REWARD: bool = True
     AUTO_UPGRADE: bool = True
     REF_ID: str = 'f295784290'
     IGNORED_BOOSTS: list[str] = ['paintReward']
+    IN_USE_SESSIONS_PATH: str = 'bot/config/used_sessions.txt'
+    NIGHT_MODE: bool = True
+    NIGHT_TIME: list[int] = [0, 7] #UTC HOURS
+    NIGHT_CHECKING: list[int] = [3600, 7200]
 
 
 settings = Settings()
