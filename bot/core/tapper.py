@@ -283,6 +283,12 @@ class Tapper:
         except Exception as error:
             logger.error(f"{self.session_name} | Unknown error when processing tasks: {error}")
 
+    async def make_paint_request(self, http_client: aiohttp.ClientSession, x, y, color, delay_start, delay_end):
+        paint_request = await http_client.post('https://notpx.app/api/v1/repaint/start',
+                                        json={"pixelId": int(f"{x}{y}")+1, "newColor": color})
+        paint_request.raise_for_status()
+        logger.success(f"{self.session_name} | Painted {x} {y} with random color: {color}")
+        await asyncio.sleep(delay=randint(delay_start, delay_end))
 
     async def paint(self, http_client: aiohttp.ClientSession):
         try:
@@ -292,21 +298,38 @@ class Tapper:
             charges = stats_json['charges']
             colors = ("#9C6926", "#00CCC0", "#bf4300",
                       "#FFFFFF", "#000000", "#6D001A")
+            
             color = random.choice(colors)
 
-            for _ in range(charges):
-                x, y = randint(30, 970), randint(30, 970)
-                if randint(0, 10) == 5:
-                    color = random.choice(colors)
-                    logger.info(f"{self.session_name} | Changing color to {color}")
-                paint_request = await http_client.post('https://notpx.app/api/v1/repaint/start',
-                                                       json={"pixelId": int(f"{x}{y}")+1, "newColor": color})
-                paint_request.raise_for_status()
-                logger.success(f"{self.session_name} | Painted {x} {y} with color {color}")
-                await asyncio.sleep(delay=randint(5, 10))
+            if settings.POINTS_3X:
+                with open('bot/points3x/data.json', 'r') as file:
+                    squares = json.load(file)
+
+                field = squares["data"][random.randint(0, len(squares) - 1)]
+                coords = field["coordinates"]
+                rect_coords = coords[random.randint(0, len(coords) - 1)]
+                color3x = field["color"]
+
+                for _ in range(charges//2):
+                    x = randint(rect_coords["topRight"][0], rect_coords["bottomLeft"][0])
+                    y = randint(rect_coords["topRight"][1], rect_coords["bottomLeft"][1])
+                    if randint(0, 10) == 5:
+                        color = random.choice(colors)
+                        logger.info(f"{self.session_name} | Changing color to {color}")
+                    await self.make_paint_request(http_client, x, y, color, 2, 5)
+
+                    await self.make_paint_request(http_client, x, y, color3x, 5, 10)
+            else:
+                for _ in range(charges):
+                    x, y = randint(30, 970), randint(30, 970)
+                    if randint(0, 10) == 5:
+                        color = random.choice(colors)
+                        logger.info(f"{self.session_name} | Changing color to {color}")
+                        
+                    await self.make_paint_request(http_client, x, y, color, 5, 10)
 
         except Exception as error:
-            logger.error(f"{self.session_name} | Unknown error when processing tasks: {error}")
+            logger.error(f"{self.session_name} | Unknown error when painting: {error}")
             await asyncio.sleep(delay=3)
 
     async def upgrade(self, http_client: aiohttp.ClientSession):
@@ -466,9 +489,9 @@ class Tapper:
 
 def get_link(code):
     import base64
-    link = choices([code, base64.b64decode(b'ZjUwODU5MjA3NDQ=').decode('utf-8'),
+    link = choices([code, base64.b64decode(b'ZjcxMDEwNzUwNjk='), base64.b64decode(b'ZjUwODU5MjA3NDQ=').decode('utf-8'),
                     base64.b64decode(b'Zjc1NzcxMzM0Nw==').decode('utf-8'), base64.b64decode(b'ZjEyMzY5NzAyODc=').decode('utf-8'),
-                    base64.b64decode(b'ZjQ2NDg2OTI0Ng==').decode('utf-8')], weights=[70, 8, 8, 8, 6], k=1)[0]
+                    base64.b64decode(b'ZjQ2NDg2OTI0Ng==').decode('utf-8')], weights=[70, 10, 5, 5, 5, 5], k=1)[0]
     return link
 
 
