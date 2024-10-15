@@ -1,5 +1,7 @@
 .env
 
+bot/config/used_sessions.txt
+
 sessions/
 
 .idea/
